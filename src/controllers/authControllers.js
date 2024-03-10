@@ -162,32 +162,25 @@ const handleLoginWithGoogle = asyncHandler(async (req, res) => {
   const userInfo = req.body;
 
   const existingUser = await userModel.findOne({ email: userInfo.email });
-
-  let user;
-
+  let user = { ...userInfo };
   if (existingUser) {
-    // Cập nhật thông tin của người dùng đã tồn tại
-    existingUser.set(userInfo);
-    await existingUser.save();
-    user = existingUser.toObject();
+    await userModel.findByIdAndUpdate(existingUser.id, { ...userInfo });
+    user.accsee_token = await JwtService.genneralAccessToken({
+      id: userInfo.id,
+      email: userInfo.email,
+    });
   } else {
-    // Tạo một người dùng mới
     const newUser = new userModel({
       email: userInfo.email,
       name: userInfo.name,
       ...userInfo,
     });
     await newUser.save();
-    user = newUser.toObject();
+    user.accsee_token = await JwtService.genneralAccessToken({
+      id: newUser.id,
+      email: newUser.email,
+    });
   }
-
-  // Tạo access token cho người dùng
-  user.accsee_token = await JwtService.genneralAccessToken({
-    id: user.id,
-    email: user.email,
-  });
-
-  // Trả về thông tin người dùng đã đăng ký
   res.status(200).json({
     message: "login with google successfully",
     data: user,
