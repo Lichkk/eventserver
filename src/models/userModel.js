@@ -12,9 +12,9 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      require: true,
+      // require: true,
     },
-    photoURL: {
+    photoUrl: {
       type: String,
     },
   },
