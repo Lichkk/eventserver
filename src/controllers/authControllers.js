@@ -160,13 +160,15 @@ const forgotPassword = async (req, res) => {
 
 const handleLoginWithGoogle = asyncHandler(async (req, res) => {
   const userInfo = req.body;
-
   const existingUser = await userModel.findOne({ email: userInfo.email });
   let user;
   if (existingUser) {
     await userModel.findByIdAndUpdate(existingUser.id);
     user = { ...existingUser };
-    user.accesstoken = await getJsonWebToken(userInfo.email, userInfo.id);
+    user.accesstoken = await JwtService.genneralAccessToken(
+      userInfo.email,
+      userInfo.id
+    );
 
     if (user) {
       const data = {
@@ -174,27 +176,30 @@ const handleLoginWithGoogle = asyncHandler(async (req, res) => {
         id: existingUser._id,
         email: existingUser.email,
         fcmTokens: existingUser.fcmTokens,
-        photo: existingUser.photoUrl,
+        photoUrl: existingUser.photoUrl,
         name: existingUser.name,
       };
 
       res.status(200).json({
         message: "Login with google successfully!!!",
-        data: data,
+        data,
       });
     } else {
       res.sendStatus(401);
       throw new Error("fafsf");
     }
   } else {
-    const newUser = new UserModel({
+    const newUser = new userModel({
       email: userInfo.email,
-      fullname: userInfo.name,
+      name: userInfo.name,
       ...userInfo,
     });
     await newUser.save();
     user = { ...newUser };
-    user.accesstoken = await getJsonWebToken(userInfo.email, newUser.id);
+    user.accesstoken = await JwtService.genneralAccessToken(
+      userInfo.email,
+      newUser.id
+    );
 
     if (user) {
       res.status(200).json({
@@ -204,7 +209,7 @@ const handleLoginWithGoogle = asyncHandler(async (req, res) => {
           id: user._id,
           email: user.email,
           fcmTokens: user.fcmTokens,
-          photo: user.photoUrl,
+          photoUrl: user.photoUrl,
           name: user.name,
         },
       });
