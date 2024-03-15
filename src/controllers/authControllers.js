@@ -158,33 +158,63 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-const handleLoginWithGoogle = asyncHandler(async (req, res) => {
+const handleLoginWithGoogle = asyncHandle(async (req, res) => {
   const userInfo = req.body;
 
-  const existingUser = await userModel.findOne({ email: userInfo.email });
-  let user = { ...userInfo };
+  const existingUser = await UserModel.findOne({ email: userInfo.email });
+  let user;
   if (existingUser) {
-    await userModel.findByIdAndUpdate(existingUser.id, { ...userInfo });
-    user.accsee_token = await JwtService.genneralAccessToken({
-      id: userInfo.id,
-      email: userInfo.email,
+    await UserModel.findByIdAndUpdate(existingUser.id, {
+      updatedAt: Date.now(),
     });
+    user = { ...existingUser };
+    user.accesstoken = await getJsonWebToken(userInfo.email, userInfo.id);
+
+    if (user) {
+      const data = {
+        accesstoken: user.accesstoken,
+        id: existingUser._id,
+        email: existingUser.email,
+        fcmTokens: existingUser.fcmTokens,
+        photo: existingUser.photoUrl,
+        name: existingUser.name,
+      };
+
+      res.status(200).json({
+        message: "Login with google successfully!!!",
+        data,
+      });
+    } else {
+      res.sendStatus(401);
+      throw new Error("fafsf");
+    }
   } else {
-    const newUser = new userModel({
+    const newUser = new UserModel({
       email: userInfo.email,
-      name: userInfo.name,
+      fullname: userInfo.name,
       ...userInfo,
     });
     await newUser.save();
-    user.accsee_token = await JwtService.genneralAccessToken({
-      id: newUser.id,
-      email: newUser.email,
-    });
+    user = { ...newUser };
+    user.accesstoken = await getJsonWebToken(userInfo.email, newUser.id);
+
+    if (user) {
+      res.status(200).json({
+        message: "Login with google successfully!!!",
+        data: {
+          accesstoken: user.accesstoken,
+          id: user._id,
+          email: user.email,
+          fcmTokens: user.fcmTokens,
+          photo: user.photoUrl,
+          name: user.name,
+        },
+      });
+    } else {
+      res.sendStatus(401);
+      throw new Error("fafsf");
+    }
   }
-  res.status(200).json({
-    message: "login with google successfully",
-    data: user,
-  });
 });
 
 module.exports = {
