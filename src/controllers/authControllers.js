@@ -158,7 +158,7 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-const handleLoginWithGoogle = asyncHandle(async (req, res) => {
+const handleLoginWithGoogle = asyncHandler(async (req, res) => {
   const userInfo = req.body;
 
   const existingUser = await UserModel.findOne({ email: userInfo.email });
