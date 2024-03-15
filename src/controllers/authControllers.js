@@ -161,12 +161,10 @@ const forgotPassword = async (req, res) => {
 const handleLoginWithGoogle = asyncHandler(async (req, res) => {
   const userInfo = req.body;
 
-  const existingUser = await UserModel.findOne({ email: userInfo.email });
+  const existingUser = await userModel.findOne({ email: userInfo.email });
   let user;
   if (existingUser) {
-    await UserModel.findByIdAndUpdate(existingUser.id, {
-      updatedAt: Date.now(),
-    });
+    await userModel.findByIdAndUpdate(existingUser.id);
     user = { ...existingUser };
     user.accesstoken = await getJsonWebToken(userInfo.email, userInfo.id);
 
