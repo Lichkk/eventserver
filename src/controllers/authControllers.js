@@ -182,7 +182,7 @@ const handleLoginWithGoogle = asyncHandler(async (req, res) => {
 
       res.status(200).json({
         message: "Login with google successfully!!!",
-        data,
+        data: data,
       });
     } else {
       res.sendStatus(401);
